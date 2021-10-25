@@ -1,0 +1,8 @@
+name: thesis
+channels:
+  - default
+dependencies:
+  - python
+  - numpy
+  - scikit-learn
+  - pip
