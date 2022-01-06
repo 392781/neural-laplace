@@ -6,3 +6,4 @@ dependencies:
   - numpy=1.21.2
   - scikit-learn=1.0.1
   - matplotlib=3.5.0
+  - jupyterlab
