@@ -51,7 +51,8 @@ class NTK(Kernel):
             K = K * Σ_mat_dot + Σ_mat + self.bias**2
 
             if eval_gradient:
-                products.append(products[-1] * Σ_mat)
+                # index instead of append
+                products.append(products[-1] * Σ_mat_dot)
             
         if eval_gradient:
             if not self.hyperparameter_bias.fixed:
@@ -67,7 +68,7 @@ class NTK(Kernel):
                 return (1/self.depth) * K
         
     def diag(self, X):
-        return np.einsum("ij,ij->i", X, X)
+        return np.diag(self(X))
 
     def is_stationary(self):
         """Returns whether the kernel is stationary."""
