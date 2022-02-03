@@ -6,7 +6,46 @@ from kernel import NTK
 import matplotlib.pyplot as plt 
 import numpy as np
 
-def plot(X, y, typ, title=None):
+def processing(*columns: tuple, noise=0.15) -> dict:
+
+    X = np.stack(columns[:-1], axis=1)
+    y = columns[-1]
+
+    temp = np.stack(columns, axis=1)
+    norm = normalize(temp, axis=1)
+    # Sanity check
+    np.testing.assert_array_almost_equal(
+        np.sqrt(np.diag(norm @ norm.T)), 
+        np.ones_like(y), 
+        0.000001)
+
+    *temp, y_norm = np.split(norm, len(columns), axis=1)
+    X_norm = np.squeeze(np.stack(temp, axis=1))
+    y = y.reshape(-1,1)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=624562
+    )
+
+    X_train_norm, X_test_norm, y_train_norm, y_test_norm = train_test_split(
+        X_norm, y_norm, test_size=0.5, random_state=624562
+    )
+
+    y_train_noisy = np.random.normal(y_train, scale=noise)
+    y_train_norm_noisy = np.random.normal(y_train_norm, scale=noise*0.65)
+
+    data = {
+        'OG' : (X, y),
+        'OG train' : [X_train, y_train, y_train_noisy],
+        'norm' : [X_norm, y_norm],
+        'norm train' : [X_train_norm, y_train_norm, y_train_norm_noisy]
+    }
+
+    return data
+
+
+
+def plot(X, y, typ: str, title: str=None) -> tuple:
 
     try:
         X, X_subset = X
