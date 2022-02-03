@@ -35,8 +35,8 @@ def processing(*columns: tuple, noise=0.15) -> dict:
     y_train_norm_noisy = np.random.normal(y_train_norm, scale=noise*0.65)
 
     data = {
-        'OG' : (X, y),
-        'OG train' : [X_train, y_train, y_train_noisy],
+        'orig' : (X, y),
+        'orig train' : [X_train, y_train, y_train_noisy],
         'norm' : [X_norm, y_norm],
         'norm train' : [X_train_norm, y_train_norm, y_train_norm_noisy]
     }
