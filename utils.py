@@ -2,7 +2,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor as GPR
 from sklearn.gaussian_process.kernels import *
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
-from ntk import NTK
+from kernel import NTK
 import matplotlib.pyplot as plt 
 import numpy as np
 
@@ -25,8 +25,8 @@ def plot(X, y, typ, title=None):
     if typ == 'data':
         if ncols == 3:
             try:
-                ax[0].scatter(X_subset[:,0], y_subset)
-                ax[1].scatter(X_subset[:,1], y_subset)
+                ax[0].scatter(X_subset[:,0], y_subset, alpha=0.6)
+                ax[1].scatter(X_subset[:,1], y_subset, alpha=0.6)
                 ax[2].scatter(X_subset[:,0], X_subset[:,1], y_subset)
             except: pass
             ax[0].plot(X[:,0], y)
@@ -37,6 +37,13 @@ def plot(X, y, typ, title=None):
             ax[2].plot(X[:,0], X[:,1], y)
             ax[2].set_xlabel('x')
             ax[2].set_ylabel('y')
+        elif ncols == 1:
+            try: 
+                ax.scatter(X_subset, y_subset, alpha=0.6)
+            except: pass
+            ax.plot(X, y)
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
     elif typ == 'kernel':
         if ncols == 3:
             ax[0].plot(X[:,0], y)
@@ -47,17 +54,27 @@ def plot(X, y, typ, title=None):
             ax[2].plot(X[:,0], X[:,1], y)
             ax[2].set_xlabel('x')
             ax[2].set_ylabel('y')
+        elif ncols == 1:
+            ax.plot(X, y)
+            ax.set_xlabel('x')
+            ax.set_ylabel('Kernel Values')
     elif typ == 'sample':
         if ncols == 3:
             for i, prior in enumerate(y):
-                ax[0].plot(X[:,0], prior, linestyle="--", alpha=0.5, label=f"Sampled function #{i + 1}")
+                ax[0].plot(X[:,0], prior, linestyle="--", alpha=0.5, label=f"Sample #{i + 1}")
                 ax[1].plot(X[:,1], prior, linestyle="--", alpha=0.5)
                 ax[2].plot(X[:,0], X[:,1], prior, alpha=0.5)
-            fig.legend(bbox_to_anchor=(0, .85, 1, 0.2), loc='center', ncol=3)
+        elif ncols == 1:
+            for i, prior in enumerate(y):
+                ax.plot(X, prior, alpha=0.5, label=f"Sample #{i + 1}")
+        
+        fig.legend(bbox_to_anchor=(0, .85, 1, 0.2), loc='center', ncol=3)
         
     fig.suptitle(title)
 
     return fig, ax
+
+
 
 def correlation_from_covariance(covariance):
     v = np.sqrt(np.diag(covariance))
