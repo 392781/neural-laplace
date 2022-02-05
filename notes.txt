@@ -7,3 +7,13 @@ see if it can estimate previous kernel's (bias)
 
 
 sanity check for sigma^h based on the 2009 paper sigma^h(x, x) = 1 for all x in S^d - 1
+
+
+
+throw in Gauss/RBF as a check
+
+friedman data
+
+figure out how to match length scales
+
+UCI regression datasets
