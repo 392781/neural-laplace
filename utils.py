@@ -2,33 +2,43 @@ from sklearn.gaussian_process import GaussianProcessRegressor as GPR
 from sklearn.gaussian_process.kernels import *
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
+from sklearn.datasets import make_friedman1
 from kernel import NTK
 import matplotlib.pyplot as plt 
 import numpy as np
 
-def processing(*columns: tuple, noise=0.15) -> dict:
-
+def processing(*columns: tuple, noise: float=0.15) -> dict:
+    """
+    Args:
+        *columns: packaged list of elements
+        noise: how much noise to add to data
+    Returns:
+        Dictionary containing the following keys: 'orig', 'orig train', 'norm', 'norm train'.
+        '... train' contains 3 np.arrays while the others contain 2
+    """
     X = np.stack(columns[:-1], axis=1)
     y = columns[-1]
 
-    temp = np.stack(columns, axis=1)
-    norm = normalize(temp, axis=1)
-    # Sanity check
-    np.testing.assert_array_almost_equal(
-        np.sqrt(np.diag(norm @ norm.T)), 
-        np.ones_like(y), 
-        0.000001)
+    # temp = np.stack(columns, axis=1)
+    # norm = normalize(temp, axis=1)
+    # # Sanity check
+    # np.testing.assert_array_almost_equal(
+    #     np.sqrt(np.diag(norm @ norm.T)), 
+    #     np.ones_like(y), 
+    #     0.000001)
 
-    *temp, y_norm = np.split(norm, len(columns), axis=1)
-    X_norm = np.squeeze(np.stack(temp, axis=1))
+    # *temp, y_norm = np.split(norm, len(columns), axis=1)
+    # X_norm = np.squeeze(np.stack(temp, axis=1))
     y = y.reshape(-1,1)
 
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_norm = normalize(X, axis=1)
+
+    X_train, _, y_train, _ = train_test_split(
         X, y, test_size=0.5, random_state=624562
     )
 
-    X_train_norm, X_test_norm, y_train_norm, y_test_norm = train_test_split(
-        X_norm, y_norm, test_size=0.5, random_state=624562
+    X_train_norm, _, y_train_norm, _ = train_test_split(
+        X_norm, y, test_size=0.5, random_state=624562
     )
 
     y_train_noisy = np.random.normal(y_train, scale=noise)
@@ -37,8 +47,8 @@ def processing(*columns: tuple, noise=0.15) -> dict:
     data = {
         'orig' : (X, y),
         'orig train' : [X_train, y_train, y_train_noisy],
-        'norm' : [X_norm, y_norm],
-        'norm train' : [X_train_norm, y_train_norm, y_train_norm_noisy]
+        'norm' : [X_norm, y],
+        'norm train' : [X_train_norm, y_train, y_train_norm_noisy]
     }
 
     return data
@@ -107,9 +117,13 @@ def plot(X, y, typ: str, title: str=None) -> tuple:
             for i, prior in enumerate(y):
                 ax.plot(X, prior, alpha=0.5, label=f"Sample #{i + 1}")
         
-        fig.legend(bbox_to_anchor=(0, .85, 1, 0.2), loc='center', ncol=3)
-        
-    fig.suptitle(title)
+        # bbox_to_anchor=(x0, y0, width, height)
+        fig.legend(bbox_to_anchor=(0, 0.85, 1, 0.2), loc='center', ncol=3)
+    
+    y=1
+    if typ=='sample':
+        y=1.075
+    fig.suptitle(title, y=y)
 
     return fig, ax
 

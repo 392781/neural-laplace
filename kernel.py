@@ -24,7 +24,7 @@ class NTK(Kernel):
         aug = False
         X_shape = -1
         Z_shape = -1
-        products = [] # only used for gradient evaluation
+        products = []
 
         if Z is None:
             Z = X
