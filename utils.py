@@ -16,8 +16,13 @@ def processing(*columns: tuple, noise: float=0.15) -> dict:
         Dictionary containing the following keys: 'orig', 'orig train', 'norm', 'norm train'.
         '... train' contains 3 np.arrays while the others contain 2
     """
-    X = np.stack(columns[:-1], axis=1)
-    y = columns[-1]
+
+    if len(columns) == 2:
+        X = columns[0]
+        y = columns[1]
+    else:
+        X = np.stack(columns[:-1], axis=1)
+        y = columns[-1]
 
     # temp = np.stack(columns, axis=1)
     # norm = normalize(temp, axis=1)
@@ -42,7 +47,7 @@ def processing(*columns: tuple, noise: float=0.15) -> dict:
     )
 
     y_train_noisy = np.random.normal(y_train, scale=noise)
-    y_train_norm_noisy = np.random.normal(y_train_norm, scale=noise*0.65)
+    y_train_norm_noisy = np.random.normal(y_train_norm, scale=noise)#*0.65)
 
     data = {
         'orig' : (X, y),
@@ -97,7 +102,7 @@ def plot(X, y, typ: str, title: str=None) -> tuple:
         if ncols == 3:
             ax[0].plot(X[:,0], y)
             ax[0].set_xlabel('x')
-            ax[0].set_ylabel('Kernel Values')
+            ax[0].set_ylabel('Posterior vals')
             ax[1].plot(X[:,1], y)
             ax[1].set_xlabel('y')
             ax[2].plot(X[:,0], X[:,1], y)
@@ -106,7 +111,21 @@ def plot(X, y, typ: str, title: str=None) -> tuple:
         elif ncols == 1:
             ax.plot(X, y)
             ax.set_xlabel('x')
-            ax.set_ylabel('Kernel Values')
+            ax.set_ylabel('Posterior vals')
+    elif typ == 'kernel scatter':
+        if ncols == 3:
+            ax[0].scatter(X[:,0], y)
+            ax[0].set_xlabel('x')
+            ax[0].set_ylabel('Posterior vals')
+            ax[1].scatter(X[:,1], y)
+            ax[1].set_xlabel('y')
+            ax[2].scatter(X[:,0], X[:,1], y)
+            ax[2].set_xlabel('x')
+            ax[2].set_ylabel('y')
+        elif ncols == 1:
+            ax.scatter(X, y)
+            ax.set_xlabel('x')
+            ax.set_ylabel('Posterior vals')
     elif typ == 'sample':
         if ncols == 3:
             for i, prior in enumerate(y):
