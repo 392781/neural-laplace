@@ -1,8 +1,8 @@
 from sklearn.gaussian_process import GaussianProcessRegressor as GPR
 from sklearn.gaussian_process.kernels import *
+from sklearn.neural_network import MLPRegressor as MLPR
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
-from sklearn.datasets import make_friedman1
 from kernel import NTK
 import matplotlib.pyplot as plt 
 import numpy as np
