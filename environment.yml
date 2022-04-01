@@ -7,3 +7,4 @@ dependencies:
   - scikit-learn=1.0.1
   - matplotlib=3.5.0
   - jupyterlab
+  - pandas
