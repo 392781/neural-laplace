@@ -1,3 +1,4 @@
+from locale import normalize
 import numpy as np
 from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 
@@ -58,14 +59,14 @@ class NTK(Kernel):
             if not self.hyperparameter_bias.fixed:
                 K_gradient = 2 * self.bias**2 * products[-1] * (1 + sum(1/np.array(products)))
                 K_gradient = np.expand_dims(K, -1)
-                return K, K_gradient
+                return (1/((self.depth+1)*(self.bias**2+1))) * K, K_gradient
             else:
-                return K, np.empty((X.shape[0], X.shape[0], 0))
+                return (1/((self.depth+1)*(self.bias**2+1))) * K, np.empty((X.shape[0], X.shape[0], 0))
         else:
             if aug:
-                return (1/self.depth) * K[0:X_shape, X_shape:(X_shape + Z_shape)]
+                return (1/((self.depth+1)*(self.bias**2+1))) * K[0:X_shape, X_shape:(X_shape + Z_shape)]
             else:
-                return (1/self.depth) * K
+                return (1/((self.depth+1)*(self.bias**2+1))) * K
         
     def diag(self, X):
         return np.diag(self(X))

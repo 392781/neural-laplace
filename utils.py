@@ -14,7 +14,10 @@ def processing(*columns: tuple, noise: float=0.15) -> dict:
         noise: how much noise to add to data
     Returns:
         Dictionary containing the following keys: 'orig', 'orig train', 'norm', 'norm train'.
-        '... train' contains 3 np.arrays while the others contain 2
+        orig        : (X, y)
+        orig train  : (X_train, y_train, y_train_noisy)
+        norm        : (X_norm, y)
+        norm train  : (X_train_norm, y_train, y_train_noisy)
     """
 
     if len(columns) == 2:
