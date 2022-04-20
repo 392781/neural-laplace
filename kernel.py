@@ -1,4 +1,3 @@
-from locale import normalize
 import numpy as np
 from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 
@@ -18,9 +17,6 @@ class NTK(Kernel):
     def hyperparameter_bias(self):
         return Hyperparameter("bias", "numeric", self.bias_bounds)
 
-    # Need's rewrite -> 2007.01580 uses x,z in R^d not whole matricies
-    # sigma_0(X,Z) = X @ Z.T -> usually vector x vector = scaler
-    #                        -> but with n x m     
     def __call__(self, X, Z=None, eval_gradient=False):
         aug = False
         X_shape = -1
@@ -41,10 +37,10 @@ class NTK(Kernel):
             products.append(np.ones((X.shape[0], X.shape[0])))
             
         Σ_mat = X @ Z.T
-        K = Σ_mat + self.bias**2
+        K = Σ_mat + self.bias**2 # K^0/
 
-        for dep in range(1, self.depth + 1):
-            diag = np.diag(Σ_mat) + 1e-10
+        for dep in range(1, self.depth + 1): # K^1 to K^L
+            diag = np.diag(Σ_mat) #+ 1e-10 WAS ON BEFORE TO FIX NUMERICAL ERROR
             denominator = np.sqrt(np.outer(diag, diag))
             λ = np.clip(Σ_mat / denominator, a_min=-1, a_max=1)
             Σ_mat = (self.c / (2 * np.pi)) * (λ * (np.pi - np.arccos(λ)) + np.sqrt(1 - λ**2)) * denominator
@@ -54,19 +50,23 @@ class NTK(Kernel):
             if eval_gradient:
                 # index instead of append
                 products.append(products[-1] * Σ_mat_dot)
+
+        scalar = 1/((self.depth + 1) * (self.bias**2 + 1))
             
         if eval_gradient:
+            if aug:
+                print("AUG TRUE")
             if not self.hyperparameter_bias.fixed:
-                K_gradient = 2 * self.bias**2 * products[-1] * (1 + sum(1/np.array(products)))
-                K_gradient = np.expand_dims(K, -1)
-                return (1/((self.depth+1)*(self.bias**2+1))) * K, K_gradient
+                K_prime = 2 * self.bias**2 * products[-1] * (1 + sum(1/np.array(products)))
+                K_prime = np.expand_dims(K_prime, -1)
+                return scalar * K, scalar * (K_prime - ((2 * self.bias) / (self.bias**2 + 1)) * np.expand_dims(K, -1))
             else:
-                return (1/((self.depth+1)*(self.bias**2+1))) * K, np.empty((X.shape[0], X.shape[0], 0))
+                return scalar * K, np.empty((X.shape[0], X.shape[0], 0))
         else:
             if aug:
-                return (1/((self.depth+1)*(self.bias**2+1))) * K[0:X_shape, X_shape:(X_shape + Z_shape)]
+                return scalar * K[0:X_shape, X_shape:(X_shape + Z_shape)]
             else:
-                return (1/((self.depth+1)*(self.bias**2+1))) * K
+                return scalar * K
         
     def diag(self, X):
         return np.diag(self(X))

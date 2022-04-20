@@ -63,7 +63,7 @@ def processing(*columns: tuple, noise: float=0.15) -> dict:
 
 
 
-def plot(X, y, typ: str, title: str=None) -> tuple:
+def plot(X, y, typ: str, title: str=None, figsize=(10,3)) -> tuple:
 
     try:
         X, X_subset = X
@@ -71,7 +71,7 @@ def plot(X, y, typ: str, title: str=None) -> tuple:
     except: pass
 
     ncols = 3 if X.shape[1] == 2 else 1
-    figsize = (10, 3)
+    figsize = figsize
 
     fig, ax = plt.subplots(nrows=1, ncols=ncols, figsize=figsize)
 
