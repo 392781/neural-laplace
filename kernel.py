@@ -40,7 +40,7 @@ class NTK(Kernel):
         K = Σ_mat + self.bias**2 # K^0/
 
         for dep in range(1, self.depth + 1): # K^1 to K^L
-            diag = np.diag(Σ_mat) #+ 1e-10 WAS ON BEFORE TO FIX NUMERICAL ERROR
+            diag = np.diag(Σ_mat) + 1e-15 # WAS ON BEFORE TO FIX NUMERICAL ERROR
             denominator = np.sqrt(np.outer(diag, diag))
             λ = np.clip(Σ_mat / denominator, a_min=-1, a_max=1)
             Σ_mat = (self.c / (2 * np.pi)) * (λ * (np.pi - np.arccos(λ)) + np.sqrt(1 - λ**2)) * denominator
