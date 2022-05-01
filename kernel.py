@@ -37,10 +37,11 @@ class NTK(Kernel):
             products.append(np.ones((X.shape[0], X.shape[0])))
             
         Σ_mat = X @ Z.T
+
         K = Σ_mat + self.bias**2 # K^0/
 
         for dep in range(1, self.depth + 1): # K^1 to K^L
-            diag = np.diag(Σ_mat) + 1e-15 # WAS ON BEFORE TO FIX NUMERICAL ERROR
+            diag = np.diag(Σ_mat) + 1e-15 # TO FIX NUMERICAL ERROR
             denominator = np.sqrt(np.outer(diag, diag))
             λ = np.clip(Σ_mat / denominator, a_min=-1, a_max=1)
             Σ_mat = (self.c / (2 * np.pi)) * (λ * (np.pi - np.arccos(λ)) + np.sqrt(1 - λ**2)) * denominator
@@ -59,7 +60,7 @@ class NTK(Kernel):
             if not self.hyperparameter_bias.fixed:
                 K_prime = 2 * self.bias**2 * products[-1] * (1 + sum(1/np.array(products)))
                 K_prime = np.expand_dims(K_prime, -1)
-                return scalar * K, scalar * (K_prime - ((2 * self.bias) / (self.bias**2 + 1)) * np.expand_dims(K, -1))
+                return scalar * K, scalar * (K_prime - ((2 * self.bias**2) / (self.bias**2 + 1)) * np.expand_dims(K, -1))
             else:
                 return scalar * K, np.empty((X.shape[0], X.shape[0], 0))
         else:
