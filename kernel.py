@@ -44,6 +44,7 @@ class NTK(Kernel):
             diag = np.diag(Σ_mat)
             denominator = np.clip(np.sqrt(np.outer(diag, diag)), a_min=1e-10, a_max=None)
             div = Σ_mat / denominator
+            div = np.nan_to_num(div)
             λ = np.clip(div, a_min=-1, a_max=1)
             Σ_mat = (self.c / (2 * np.pi)) * (λ * (np.pi - np.arccos(λ)) + np.sqrt(1 - λ**2)) * denominator
             Σ_mat_dot = (self.c / (2 * np.pi)) * (np.pi - np.arccos(λ))
