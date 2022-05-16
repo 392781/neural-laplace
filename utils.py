@@ -3,9 +3,12 @@ from sklearn.gaussian_process.kernels import *
 from sklearn.neural_network import MLPRegressor as MLPR
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
+from scipy.stats import qmc
+from scipy import optimize
 from kernel import NTK
 import matplotlib.pyplot as plt 
 import numpy as np
+import pickle
 
 def processing(*columns: tuple, noise: float=0.15) -> dict:
     """
@@ -19,6 +22,8 @@ def processing(*columns: tuple, noise: float=0.15) -> dict:
         norm        : (X_norm, y)
         norm train  : (X_train_norm, y_train, y_train_noisy)
     """
+
+    np.random.seed(12589374)
 
     if len(columns) == 2:
         X = columns[0]
@@ -41,11 +46,11 @@ def processing(*columns: tuple, noise: float=0.15) -> dict:
 
     X_norm = normalize(X, axis=1)
 
-    X_train, _, y_train, _ = train_test_split(
+    X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.5, random_state=624562
     )
 
-    X_train_norm, _, y_train_norm, _ = train_test_split(
+    X_train_norm, X_test_norm, y_train_norm, y_test_norm = train_test_split(
         X_norm, y, test_size=0.5, random_state=624562
     )
 
@@ -53,10 +58,12 @@ def processing(*columns: tuple, noise: float=0.15) -> dict:
     y_train_norm_noisy = np.random.normal(y_train_norm, scale=noise)#*0.65)
 
     data = {
-        'orig' : (X, y),
+        'orig' : [X, y],
         'orig train' : [X_train, y_train, y_train_noisy],
+        'orig test' : [X_test, y_test],
         'norm' : [X_norm, y],
-        'norm train' : [X_train_norm, y_train, y_train_norm_noisy]
+        'norm train' : [X_train_norm, y_train, y_train_norm_noisy],
+        'norm test' : [X_test_norm, y_test_norm]
     }
 
     return data
@@ -157,3 +164,221 @@ def correlation_from_covariance(covariance):
     correlation = covariance / outer_v
     correlation[covariance == 0] = 0
     return correlation
+
+
+
+def g(ell, gp, mean_ntk, data):
+    try:
+        gp.set_params(**{'kernel__k2__length_scale': ell})
+    except:
+        gp.set_params(**{'kernel__k1__k2__length_scale': ell})
+
+
+    gp.fit(data[0], data[1])
+    mean = gp.predict(data[2])
+    
+    return np.sqrt(np.mean((mean_ntk - mean)**2))
+
+
+
+def experiment(data, depth, alpha=1e-5):
+    """
+    Data format := `[X_train, y_train, X_test, y_test, norm, noise, name]`
+
+    Outputs dictionary containing `dataset`, `means`, `kernel`, 
+    `ntk`, `lap`, and `gaus` information
+    """
+    norm = data[-3]
+    noise = data[-2]
+    name = data[-1]
+
+    print(f'{name} :\nnorm  = {norm}\nnoise = {noise}\ndepth = {depth}')
+
+
+    #########################
+    # Neural tangent Kernel #
+    #########################
+
+
+    ntk = (
+        ConstantKernel(constant_value=1.0, constant_value_bounds=(1e-9, 1e5)) * 
+        NTK(depth=depth, c=2, bias=0.1, 
+            bias_bounds=(1e-9, 1e5))
+    )
+
+    if noise != 0.0:
+        ntk += WhiteKernel(
+            noise_level=0.15**2, 
+            noise_level_bounds=(1e-4, 1e1)
+        )
+
+    gp_ntk = GPR(kernel=ntk, alpha=alpha, normalize_y=True,  n_restarts_optimizer=9, random_state=3480795)
+    gp_ntk.fit(data[0], data[1])
+    mean_ntk = gp_ntk.predict(data[2])
+
+    print(gp_ntk.kernel_)
+
+    if noise != 0.0:
+        const_val = gp_ntk.kernel_.get_params()['k1__k1__constant_value']
+        noise_lvl = gp_ntk.kernel_.get_params()['k2__noise_level']
+        bias = gp_ntk.kernel_.get_params()['k1__k2__bias']
+    else :
+        const_val = gp_ntk.kernel_.get_params()['k1__constant_value']
+        noise_lvl = None
+        bias = gp_ntk.kernel_.get_params()['k1__bias']
+
+
+    #########################
+    #     Laplace Kernel    #
+    #########################
+
+
+    lpk = (
+        ConstantKernel(
+            constant_value=const_val,
+            constant_value_bounds='fixed'
+        ) *
+        Matern(
+            nu=1/2,
+            length_scale=1,
+            length_scale_bounds='fixed'
+        ) 
+    )
+
+    if noise != 0.0: 
+        lpk += WhiteKernel(
+            noise_level=noise_lvl,
+            noise_level_bounds='fixed'
+        )
+
+    gp_lpk = GPR(kernel=lpk, alpha=alpha, normalize_y=True, n_restarts_optimizer=0, random_state=3480795)
+
+    ell_lpk = optimize.minimize_scalar(g, args=(
+        gp_lpk, mean_ntk, data), 
+        method='bounded', bounds=[1e-4, 1e-3], options={'maxiter': 10000})
+    for i in range(-2, 6):
+        tmp = optimize.minimize_scalar(g, args=(
+            gp_lpk, mean_ntk, data),
+            method='bounded', bounds=[1e-4, 10**i], options={'maxiter': 10000})
+        if tmp.fun < ell_lpk.fun:
+            ell_lpk = tmp
+
+    try:
+        gp_lpk.set_params(**{'kernel__k2__length_scale': ell_lpk.x})
+    except:
+        gp_lpk.set_params(**{'kernel__k1__k2__length_scale': ell_lpk.x})
+    gp_lpk.fit(data[0], data[1])
+    mean_lpk_opt = gp_lpk.predict(data[2])
+
+    print(gp_lpk.kernel_)
+
+
+    #########################
+    #    Gaussian Kernel    #
+    #########################
+
+
+    gaus = (
+        ConstantKernel(
+            constant_value=const_val,
+            constant_value_bounds='fixed'
+        ) *
+        Matern(
+            nu=np.inf,
+            length_scale=1,
+            length_scale_bounds='fixed'
+        ) 
+    )
+
+    if noise != 0.0: 
+        gaus += WhiteKernel(
+            noise_level=noise_lvl,
+            noise_level_bounds='fixed'
+        )
+
+    gp_gaus = GPR(kernel=gaus, alpha=alpha, normalize_y=True, n_restarts_optimizer=0, random_state=3480795)
+
+    ell_gaus = optimize.minimize_scalar(g, args=(
+        gp_gaus, mean_ntk, data), 
+        method='bounded', bounds=[1e-4, 1e-3], options={'maxiter': 10000})
+    for i in range(-2, 6):
+        tmp = optimize.minimize_scalar(g, args=(
+            gp_gaus, mean_ntk, data),
+            method='bounded', bounds=[1e-4, 10**i], options={'maxiter': 10000})
+        if tmp.fun < ell_gaus.fun:
+            ell_gaus = tmp
+
+    try:
+        gp_gaus.set_params(**{'kernel__k2__length_scale': ell_gaus.x})
+    except:
+        gp_gaus.set_params(**{'kernel__k1__k2__length_scale': ell_gaus.x})
+    gp_gaus.fit(data[0], data[1])
+    mean_gaus_opt = gp_gaus.predict(data[2])
+
+    print(gp_gaus.kernel_)
+
+
+    #########################
+    #         Data          #
+    #########################
+
+
+    exp_data = {}
+
+    exp_data['dataset'] = {
+        'name' : name,
+        'norm' : norm,
+        'noise': noise,
+        'test' : [data[2], data[3]]
+    }
+    exp_data['means'] = (mean_ntk, mean_lpk_opt, mean_gaus_opt)
+    exp_data['kernel'] = {
+        'C' : const_val,
+        'W' : noise_lvl,
+        'ell_lap' : ell_lpk.x,
+        'ell_gaus' : ell_gaus.x,
+        'depth' : depth,
+        'bias' : bias
+    }
+    exp_data['ntk'] = {
+        'pred_rmse' : None,
+        'pred_corr' : None,
+        'data_rmse' : np.sqrt(np.mean((data[3] - mean_ntk)**2)),
+        'data_corr' : np.corrcoef((data[3])[:,0], (mean_ntk)[:,0])[0, 1],
+        'resi_corr' : None 
+    }
+    exp_data['lap'] = {
+        'pred_rmse' : ell_lpk.fun,
+        'pred_corr' : np.corrcoef((mean_ntk)[:,0], (mean_lpk_opt)[:,0])[0, 1],
+        'data_rmse' : np.sqrt(np.mean((data[3] - mean_lpk_opt)**2)),
+        'data_corr' : np.corrcoef((data[3])[:,0], (mean_lpk_opt)[:,0])[0, 1],
+        'resi_corr' : np.corrcoef((data[3]-mean_ntk)[:,0], (data[3] - mean_lpk_opt)[:,0])[0, 1]
+    }
+    exp_data['gaus'] = {
+        'pred_rmse' : ell_gaus.fun,
+        'pred_corr' : np.corrcoef((mean_ntk)[:,0], (mean_gaus_opt)[:,0])[0, 1],
+        'data_rmse' : np.sqrt(np.mean((data[3] - mean_gaus_opt)**2)),
+        'data_corr' : np.corrcoef((data[3])[:,0], (mean_gaus_opt)[:,0])[0, 1],
+        'resi_corr' : np.corrcoef((data[3]-mean_ntk)[:,0], (data[3] - mean_gaus_opt)[:,0])[0, 1]
+    }
+
+    return exp_data
+
+def save_data(data, name):
+    with open(f'{name}.dat', 'wb') as f:
+        pickle.dump(data, f)
+
+def load_data(name):
+    try:
+        with open(f'{name}.dat', 'rb') as f:
+            out = pickle.load(f)
+    except:
+        raise Exception('Load Failure')
+    return out
+
+lh = qmc.LatinHypercube(1, seed=23548709)
+def sample(low, high, n):
+    smpl = lh.random(n)
+    smpl = qmc.scale(smpl, low, high)
+    smpl = np.sort(smpl.ravel())
+    return smpl
