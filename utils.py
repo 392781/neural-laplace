@@ -225,7 +225,7 @@ def experiment(data, depth, alpha=1e-5):
     else :
         const_val = gp_ntk.kernel_.get_params()['k1__constant_value']
         noise_lvl = None
-        bias = gp_ntk.kernel_.get_params()['k1__bias']
+        bias = gp_ntk.kernel_.get_params()['k2__bias']
 
 
     #########################
@@ -329,9 +329,10 @@ def experiment(data, depth, alpha=1e-5):
         'name' : name,
         'norm' : norm,
         'noise': noise,
-        'test' : [data[2], data[3]]
+        'test' : [data[2], data[3]],
+        'draw' : data[4]
     }
-    exp_data['means'] = (mean_ntk, mean_lpk_opt, mean_gaus_opt)
+    exp_data['means'] = (mean_ntk.ravel(), mean_lpk_opt.ravel(), mean_gaus_opt.ravel())
     exp_data['kernel'] = {
         'C' : const_val,
         'W' : noise_lvl,
@@ -343,23 +344,23 @@ def experiment(data, depth, alpha=1e-5):
     exp_data['ntk'] = {
         'pred_rmse' : None,
         'pred_corr' : None,
-        'data_rmse' : np.sqrt(np.mean((data[3] - mean_ntk)**2)),
-        'data_corr' : np.corrcoef((data[3])[:,0], (mean_ntk)[:,0])[0, 1],
+        'data_rmse' : np.sqrt(np.mean((data[3].ravel() - mean_ntk.ravel())**2)),
+        'data_corr' : np.corrcoef((data[3]).ravel(), (mean_ntk).ravel())[0, 1],
         'resi_corr' : None 
     }
     exp_data['lap'] = {
         'pred_rmse' : ell_lpk.fun,
-        'pred_corr' : np.corrcoef((mean_ntk)[:,0], (mean_lpk_opt)[:,0])[0, 1],
-        'data_rmse' : np.sqrt(np.mean((data[3] - mean_lpk_opt)**2)),
-        'data_corr' : np.corrcoef((data[3])[:,0], (mean_lpk_opt)[:,0])[0, 1],
-        'resi_corr' : np.corrcoef((data[3]-mean_ntk)[:,0], (data[3] - mean_lpk_opt)[:,0])[0, 1]
+        'pred_corr' : np.corrcoef((mean_ntk).ravel(), (mean_lpk_opt).ravel())[0, 1],
+        'data_rmse' : np.sqrt(np.mean((data[3].ravel() - mean_lpk_opt.ravel())**2)),
+        'data_corr' : np.corrcoef((data[3]).ravel(), (mean_lpk_opt).ravel())[0, 1],
+        'resi_corr' : np.corrcoef((data[3].ravel()-mean_ntk.ravel()), (data[3].ravel() - mean_lpk_opt.ravel()))[0, 1]
     }
     exp_data['gaus'] = {
         'pred_rmse' : ell_gaus.fun,
-        'pred_corr' : np.corrcoef((mean_ntk)[:,0], (mean_gaus_opt)[:,0])[0, 1],
-        'data_rmse' : np.sqrt(np.mean((data[3] - mean_gaus_opt)**2)),
-        'data_corr' : np.corrcoef((data[3])[:,0], (mean_gaus_opt)[:,0])[0, 1],
-        'resi_corr' : np.corrcoef((data[3]-mean_ntk)[:,0], (data[3] - mean_gaus_opt)[:,0])[0, 1]
+        'pred_corr' : np.corrcoef((mean_ntk).ravel(), (mean_gaus_opt).ravel())[0, 1],
+        'data_rmse' : np.sqrt(np.mean((data[3].ravel() - mean_gaus_opt.ravel())**2)),
+        'data_corr' : np.corrcoef((data[3]).ravel(), (mean_gaus_opt).ravel())[0, 1],
+        'resi_corr' : np.corrcoef((data[3].ravel()-mean_ntk.ravel()), (data[3].ravel() - mean_gaus_opt.ravel()))[0, 1]
     }
 
     return exp_data
