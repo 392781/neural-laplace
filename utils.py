@@ -183,7 +183,7 @@ def g(ell, gp, mean_ntk, data):
 
 def experiment(data, depth, alpha=1e-5):
     """
-    Data format := `[X_train, y_train, X_test, y_test, norm, noise, name]`
+    Data format := `[X_train, y_train, X_test, y_test, X_draw, norm : bool, noise : float, name : str]`
 
     Outputs dictionary containing `dataset`, `means`, `kernel`, 
     `ntk`, `lap`, and `gaus` information
@@ -192,7 +192,7 @@ def experiment(data, depth, alpha=1e-5):
     noise = data[-2]
     name = data[-1]
 
-    print(f'{name} :\nnorm  = {norm}\nnoise = {noise}\ndepth = {depth}')
+    print(f'\n{name} :\nnorm  = {norm}\nnoise = {noise}\ndepth = {depth}')
 
 
     #########################
