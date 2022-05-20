@@ -3,6 +3,7 @@ from sklearn.gaussian_process.kernels import *
 from sklearn.neural_network import MLPRegressor as MLPR
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
+from sklearn import metrics
 from scipy.stats import qmc
 from scipy import optimize
 from kernel import NTK
@@ -346,21 +347,24 @@ def experiment(data, depth, alpha=1e-5):
         'pred_corr' : None,
         'data_rmse' : np.sqrt(np.mean((data[3].ravel() - mean_ntk.ravel())**2)),
         'data_corr' : np.corrcoef((data[3]).ravel(), (mean_ntk).ravel())[0, 1],
-        'resi_corr' : None 
+        'resi_corr' : None,
+        'r2' : metrics.r2_score(data[3].ravel(), mean_ntk.ravel())
     }
     exp_data['lap'] = {
         'pred_rmse' : ell_lpk.fun,
         'pred_corr' : np.corrcoef((mean_ntk).ravel(), (mean_lpk_opt).ravel())[0, 1],
         'data_rmse' : np.sqrt(np.mean((data[3].ravel() - mean_lpk_opt.ravel())**2)),
         'data_corr' : np.corrcoef((data[3]).ravel(), (mean_lpk_opt).ravel())[0, 1],
-        'resi_corr' : np.corrcoef((data[3].ravel()-mean_ntk.ravel()), (data[3].ravel() - mean_lpk_opt.ravel()))[0, 1]
+        'resi_corr' : np.corrcoef((data[3].ravel()-mean_ntk.ravel()), (data[3].ravel() - mean_lpk_opt.ravel()))[0, 1],
+        'r2' : metrics.r2_score(data[3].ravel(), mean_lpk_opt.ravel())
     }
     exp_data['gaus'] = {
         'pred_rmse' : ell_gaus.fun,
         'pred_corr' : np.corrcoef((mean_ntk).ravel(), (mean_gaus_opt).ravel())[0, 1],
         'data_rmse' : np.sqrt(np.mean((data[3].ravel() - mean_gaus_opt.ravel())**2)),
         'data_corr' : np.corrcoef((data[3]).ravel(), (mean_gaus_opt).ravel())[0, 1],
-        'resi_corr' : np.corrcoef((data[3].ravel()-mean_ntk.ravel()), (data[3].ravel() - mean_gaus_opt.ravel()))[0, 1]
+        'resi_corr' : np.corrcoef((data[3].ravel()-mean_ntk.ravel()), (data[3].ravel() - mean_gaus_opt.ravel()))[0, 1],
+        'r2' : metrics.r2_score(data[3].ravel(), mean_gaus_opt.ravel())
     }
 
     return exp_data
