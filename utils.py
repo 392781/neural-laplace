@@ -210,10 +210,10 @@ def experiment(data, depth, alpha=1e-5):
     if noise != 0.0:
         ntk += WhiteKernel(
             noise_level=0.15**2, 
-            noise_level_bounds=(1e-4, 1e1)
+            noise_level_bounds=(1e-4, 1e4)
         )
 
-    gp_ntk = GPR(kernel=ntk, alpha=alpha, normalize_y=True,  n_restarts_optimizer=9, random_state=3480795)
+    gp_ntk = GPR(kernel=ntk, alpha=alpha, normalize_y=False,  n_restarts_optimizer=9, random_state=3480795)
     gp_ntk.fit(data[0], data[1])
     mean_ntk = gp_ntk.predict(data[2])
 
@@ -252,7 +252,7 @@ def experiment(data, depth, alpha=1e-5):
             noise_level_bounds='fixed'
         )
 
-    gp_lpk = GPR(kernel=lpk, alpha=alpha, normalize_y=True, n_restarts_optimizer=0, random_state=3480795)
+    gp_lpk = GPR(kernel=lpk, alpha=alpha, normalize_y=False, n_restarts_optimizer=0, random_state=3480795)
 
     ell_lpk = optimize.minimize_scalar(g, args=(
         gp_lpk, mean_ntk, data), 
@@ -297,7 +297,7 @@ def experiment(data, depth, alpha=1e-5):
             noise_level_bounds='fixed'
         )
 
-    gp_gaus = GPR(kernel=gaus, alpha=alpha, normalize_y=True, n_restarts_optimizer=0, random_state=3480795)
+    gp_gaus = GPR(kernel=gaus, alpha=alpha, normalize_y=False, n_restarts_optimizer=0, random_state=3480795)
 
     ell_gaus = optimize.minimize_scalar(g, args=(
         gp_gaus, mean_ntk, data), 
