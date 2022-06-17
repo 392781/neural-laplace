@@ -1,4 +1,4 @@
-# Powerful Thesis 7 - Tokyo Drift
+# An Empirical Analysis of the Laplace and Neural Tangent Kernel Reproducing Kernel Hilbert Spaces
 
 To create a `conda` environment use the following:
 
