@@ -7,6 +7,7 @@ from sklearn import metrics
 from scipy.stats import qmc
 from scipy import optimize
 from kernel import NTK
+from functools import partial
 import matplotlib.pyplot as plt 
 import numpy as np
 import pickle
