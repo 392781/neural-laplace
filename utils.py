@@ -183,7 +183,7 @@ def g(ell, gp, mean_ntk, data):
 
 
 
-def experiment(data, depth, alpha=1e-5):
+def experiment(data, depth, alpha=1e-5, search_bound=6):
     """
     Data format := `[X_train, y_train, X_test, y_test, X_draw, norm : bool, noise : float, name : str]`
 
@@ -210,7 +210,7 @@ def experiment(data, depth, alpha=1e-5):
 
     if noise != 0.0:
         ntk += WhiteKernel(
-            noise_level=0.15**2, 
+            noise_level=1, 
             noise_level_bounds=(1e-4, 1e4)
         )
 
@@ -258,7 +258,7 @@ def experiment(data, depth, alpha=1e-5):
     ell_lpk = optimize.minimize_scalar(g, args=(
         gp_lpk, mean_ntk, data), 
         method='bounded', bounds=[1e-4, 1e-3], options={'maxiter': 10000})
-    for i in range(-2, 6):
+    for i in range(-2, search_bound):
         tmp = optimize.minimize_scalar(g, args=(
             gp_lpk, mean_ntk, data),
             method='bounded', bounds=[1e-4, 10**i], options={'maxiter': 10000})
@@ -303,7 +303,7 @@ def experiment(data, depth, alpha=1e-5):
     ell_gaus = optimize.minimize_scalar(g, args=(
         gp_gaus, mean_ntk, data), 
         method='bounded', bounds=[1e-4, 1e-3], options={'maxiter': 10000})
-    for i in range(-2, 6):
+    for i in range(-2, search_bound):
         tmp = optimize.minimize_scalar(g, args=(
             gp_gaus, mean_ntk, data),
             method='bounded', bounds=[1e-4, 10**i], options={'maxiter': 10000})
