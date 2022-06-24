@@ -44,21 +44,18 @@ class NTK(Kernel):
             diag = np.diag(Σ_mat)
             denominator = np.clip(np.sqrt(np.outer(diag, diag)), a_min=1e-10, a_max=None)
             div = Σ_mat / denominator
-            div = np.nan_to_num(div)
+            # div = np.nan_to_num(div)
             λ = np.clip(div, a_min=-1, a_max=1)
             Σ_mat = (self.c / (2 * np.pi)) * (λ * (np.pi - np.arccos(λ)) + np.sqrt(1 - λ**2)) * denominator
             Σ_mat_dot = (self.c / (2 * np.pi)) * (np.pi - np.arccos(λ))
             K = K * Σ_mat_dot + Σ_mat + self.bias**2
 
             if eval_gradient:
-                # index instead of append
                 products.append(products[-1] * Σ_mat_dot)
 
         scalar = 1/((self.depth + 1) * (self.bias**2 + 1))
             
         if eval_gradient:
-            if aug:
-                print("AUG TRUE")
             if not self.hyperparameter_bias.fixed:
                 K_prime = 2 * self.bias**2 * products[-1] * (1 + sum(1/np.array(products)))
                 K_prime = np.expand_dims(K_prime, -1)

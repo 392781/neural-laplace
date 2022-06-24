@@ -182,7 +182,7 @@ def g(ell, gp, mean_ntk, data):
 
 
 
-def experiment(data, depth, alpha=1e-5, search_bound=6):
+def experiment(data, depth, alpha=1e-5, search_bound=6, norm_y=True):
     """
     Data format := `[X_train, y_train, X_test, y_test, X_draw, norm : bool, noise : float, name : str]`
 
@@ -204,7 +204,8 @@ def experiment(data, depth, alpha=1e-5, search_bound=6):
     ntk = (
         ConstantKernel(constant_value=1.0, constant_value_bounds=(1e-9, 1e5)) * 
         NTK(depth=depth, c=2, bias=0.1, 
-            bias_bounds=(1e-9, 1e5))
+            bias_bounds=(1e-9, 1e5)
+        )
     )
 
     if noise != 0.0:
@@ -213,7 +214,7 @@ def experiment(data, depth, alpha=1e-5, search_bound=6):
             noise_level_bounds=(1e-4, 1e4)
         )
 
-    gp_ntk = GPR(kernel=ntk, alpha=alpha, normalize_y=True,  n_restarts_optimizer=9, random_state=3480795)
+    gp_ntk = GPR(kernel=ntk, alpha=alpha, normalize_y=norm_y,  n_restarts_optimizer=9, random_state=3480795)
     gp_ntk.fit(data[0], data[1])
     mean_ntk = gp_ntk.predict(data[2])
 
@@ -252,7 +253,7 @@ def experiment(data, depth, alpha=1e-5, search_bound=6):
             noise_level_bounds='fixed'
         )
 
-    gp_lpk = GPR(kernel=lpk, alpha=alpha, normalize_y=True, n_restarts_optimizer=0, random_state=3480795)
+    gp_lpk = GPR(kernel=lpk, alpha=alpha, normalize_y=norm_y, n_restarts_optimizer=0, random_state=3480795)
 
     ell_lpk = optimize.minimize_scalar(g, args=(
         gp_lpk, mean_ntk, data), 
@@ -297,7 +298,7 @@ def experiment(data, depth, alpha=1e-5, search_bound=6):
             noise_level_bounds='fixed'
         )
 
-    gp_gaus = GPR(kernel=gaus, alpha=alpha, normalize_y=True, n_restarts_optimizer=0, random_state=3480795)
+    gp_gaus = GPR(kernel=gaus, alpha=alpha, normalize_y=norm_y, n_restarts_optimizer=0, random_state=3480795)
 
     ell_gaus = optimize.minimize_scalar(g, args=(
         gp_gaus, mean_ntk, data), 
