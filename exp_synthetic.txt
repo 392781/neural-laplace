@@ -1,0 +1,53 @@
+
+Ackley :
+norm  = False
+noise = 0.0
+depth = 2
+12.8**2 * NTK(depth=2, c=2.000, bias=12.114)
+12.8**2 * Matern(length_scale=1.79e+08, nu=0.5)
+12.8**2 * Matern(length_scale=384, nu=inf)
+
+Ackley :
+norm  = False
+noise = 0.0
+depth = 3
+10.4**2 * NTK(depth=3, c=2.000, bias=12.036)
+10.4**2 * Matern(length_scale=1.19e+08, nu=0.5)
+10.4**2 * Matern(length_scale=347, nu=inf)
+
+Ackley :
+norm  = False
+noise = 0.0
+depth = 10
+5.64**2 * NTK(depth=10, c=2.000, bias=11.354)
+5.64**2 * Matern(length_scale=3.45e+07, nu=0.5)
+5.64**2 * Matern(length_scale=255, nu=inf)
+
+Ackley :
+norm  = True
+noise = 0.0
+depth = 2
+70.7**2 * NTK(depth=2, c=2.000, bias=1340.436)
+70.7**2 * Matern(length_scale=2.93, nu=0.5)
+70.7**2 * Matern(length_scale=0.000374, nu=inf)
+
+Ackley :
+norm  = True
+noise = 0.0
+depth = 3
+57.7**2 * NTK(depth=3, c=2.000, bias=35739.265)
+57.7**2 * Matern(length_scale=1.84, nu=0.5)
+57.7**2 * Matern(length_scale=0.000374, nu=inf)
+
+Ackley :
+norm  = True
+noise = 0.0
+depth = 10
+31.6**2 * NTK(depth=10, c=2.000, bias=24497.680)
+31.6**2 * Matern(length_scale=0.414, nu=0.5)
+31.6**2 * Matern(length_scale=0.000374, nu=inf)
+
+Ackley :
+norm  = False
+noise = 0.15
+depth = 2
