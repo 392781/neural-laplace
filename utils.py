@@ -168,6 +168,15 @@ def correlation_from_covariance(covariance):
 
 
 
+def rsquared(truth, pred):
+    truth_mean = np.mean(truth)
+    rss = np.sum((truth - pred)**2)
+    tss = np.sum((truth - truth_mean)**2)
+
+    return 1 - (rss/tss)
+
+
+
 def g(ell, gp, mean_ntk, data):
     try:
         gp.set_params(**{'kernel__k2__length_scale': ell})
@@ -182,7 +191,7 @@ def g(ell, gp, mean_ntk, data):
 
 
 
-def experiment(data, depth, alpha=1e-5, search_bound=6, norm_y=True):
+def experiment(data, depth, alpha=1e-5, search_bound=6, norm_y=True, log=False):
     """
     Data format := `[X_train, y_train, X_test, y_test, X_draw, norm : bool, noise : float, name : str]`
 
@@ -349,7 +358,7 @@ def experiment(data, depth, alpha=1e-5, search_bound=6, norm_y=True):
         'data_rmse' : np.sqrt(np.mean((data[3].ravel() - mean_ntk.ravel())**2)),
         'data_corr' : np.corrcoef((data[3]).ravel(), (mean_ntk).ravel())[0, 1],
         'resi_corr' : None,
-        'r2' : metrics.r2_score(data[3].ravel(), mean_ntk.ravel())
+        'r2' : rsquared(data[3].ravel(), mean_ntk.ravel())
     }
     exp_data['lap'] = {
         'pred_rmse' : ell_lpk.fun,
@@ -357,7 +366,7 @@ def experiment(data, depth, alpha=1e-5, search_bound=6, norm_y=True):
         'data_rmse' : np.sqrt(np.mean((data[3].ravel() - mean_lpk_opt.ravel())**2)),
         'data_corr' : np.corrcoef((data[3]).ravel(), (mean_lpk_opt).ravel())[0, 1],
         'resi_corr' : np.corrcoef((data[3].ravel()-mean_ntk.ravel()), (data[3].ravel() - mean_lpk_opt.ravel()))[0, 1],
-        'r2' : metrics.r2_score(data[3].ravel(), mean_lpk_opt.ravel())
+        'r2' : rsquared(data[3].ravel(), mean_lpk_opt.ravel())
     }
     exp_data['gaus'] = {
         'pred_rmse' : ell_gaus.fun,
@@ -365,8 +374,13 @@ def experiment(data, depth, alpha=1e-5, search_bound=6, norm_y=True):
         'data_rmse' : np.sqrt(np.mean((data[3].ravel() - mean_gaus_opt.ravel())**2)),
         'data_corr' : np.corrcoef((data[3]).ravel(), (mean_gaus_opt).ravel())[0, 1],
         'resi_corr' : np.corrcoef((data[3].ravel()-mean_ntk.ravel()), (data[3].ravel() - mean_gaus_opt.ravel()))[0, 1],
-        'r2' : metrics.r2_score(data[3].ravel(), mean_gaus_opt.ravel())
+        'r2' : rsquared(data[3].ravel(), mean_gaus_opt.ravel())
     }
+
+    if log:
+        print('NTK r2:  ', rsquared(data[3].ravel(), mean_ntk.ravel()))
+        print('Lap r2:  ', rsquared(data[3].ravel(), mean_lpk_opt.ravel()))
+        print('Gaus r2: ', rsquared(data[3].ravel(), mean_gaus_opt.ravel()))
 
     return exp_data
 
