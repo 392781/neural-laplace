@@ -2,3 +2,5 @@ __pycache__
 .vscode
 data.tar.gz
 data
+experiments/
+illustrative/
