@@ -1,4 +1,4 @@
-## An Empirical Analysis of the Laplace and Neural Tangent Kernel Reproducing Kernel Hilbert Spaces
+## An Empirical Analysis of the Laplace and Neural Tangent Kernel
 
 To create a `conda` environment use the following:
 
