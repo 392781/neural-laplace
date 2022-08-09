@@ -16,3 +16,18 @@ To create a `conda` environment use the following:
 ```bash
 conda env create -f environment.yml
 ```
+
+# This is research code for my master's thesis.  Still needs clean up!
+
+### Citation
+
+```
+@mastersthesis{lencevicius2022laplacentk,
+  author  = "Ronaldas Paulius Lencevicius",
+  title   = "An Empirical Analysis of the Laplace and Neural Tangent Kernels",
+  school  = "California State Polytechnic University, Pomona",
+  year    = "2022",
+  month   = "August",
+  note    = "https://arxiv.org/abs/2208.03761"
+}
+```
