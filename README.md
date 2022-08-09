@@ -28,6 +28,6 @@ conda env create -f environment.yml
   school  = "California State Polytechnic University, Pomona",
   year    = "2022",
   month   = "August",
-  note    = "https://arxiv.org/abs/2208.03761"
+  note    = {\url{https://arxiv.org/abs/2208.03761}}
 }
 ```
