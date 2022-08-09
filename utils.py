@@ -4,9 +4,9 @@ from sklearn.neural_network import MLPRegressor as MLPR
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
 from sklearn import metrics
+from skntk import NeuralTangentKernel as NTK
 from scipy.stats import qmc
 from scipy import optimize
-from kernel import NTK
 import matplotlib.pyplot as plt 
 import numpy as np
 import pickle
