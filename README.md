@@ -11,15 +11,15 @@ This work is licensed under a
 [cc-by-sa-image]: https://licensebuttons.net/l/by-sa/4.0/88x31.png
 [cc-by-sa-shield]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
 
+Code for master's thesis: "An Empirical Analysis of the Laplace and Neural Tangent Kernel" ([https://arxiv.org/abs/2208.03761](https://arxiv.org/abs/2208.03761)).
+
 To create a `conda` environment use the following:
 
 ```bash
 conda env create -f environment.yml
 ```
 
-# This is research code for my master's thesis.  Still needs clean up!
-
-### Citation
+## Citation
 
 ```
 @mastersthesis{lencevicius2022laplacentk,
